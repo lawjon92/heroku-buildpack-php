@@ -737,13 +737,13 @@ relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_fu
 # link to bins
 cd $build_dir/$composer_bindir
 ln -fs $relbins .
-cd $build_dir
 
 if [[ ! -f "Procfile" ]]; then
 	echo "web: heroku-$engine-apache2" > Procfile
 	notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
 fi
 
+cd $build_dir
 # write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)
 > $build_dir/.profile.d/WEB_CONCURRENCY.sh
 
