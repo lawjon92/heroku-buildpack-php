@@ -188,7 +188,7 @@ else
 fi
 
 # PHP expects to be installed in /app/.heroku/php because of compiled paths, let's set that up!
-mkdir -p /app/.heroku
+mkdir -p /app/api/.heroku
 # all system packages live in there
 mkdir -p $build_dir/.heroku/php
 # set up Composer
