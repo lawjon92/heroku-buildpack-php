@@ -738,6 +738,7 @@ relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_fu
 cd $build_dir/$composer_bindir
 ln -fs $relbins .
 
+cd $build_dir/..
 if [[ ! -f "Procfile" ]]; then
 	echo "web: heroku-$engine-apache2" > Procfile
 	notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
