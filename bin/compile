@@ -196,7 +196,7 @@ export COMPOSER_HOME=$cache_dir/.composer
 mkdir -p $COMPOSER_HOME
 
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
-[[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
+[[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/api/.heroku/php
 
 status "Bootstrapping..."
 
@@ -216,7 +216,7 @@ fi
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
-ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
+ln -s $build_dir/.heroku/php-min /app/api/.heroku/php-min
 
 curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.3.16.tar.gz" || {
 	mcount "failures.bootstrap.download.php-min"
@@ -246,7 +246,7 @@ rm $build_dir/.heroku/composer.tar.gz
 
 # this alias is just for now while we install platform packages
 composer() {
-	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
+	/app/api/.heroku/php-min/bin/php /app/api/.heroku/php/bin/composer "$@"
 }
 export -f composer
 
@@ -256,11 +256,11 @@ composer_bindir=$(composer config --no-plugins bin-dir)
 
 # packages that get installed will add to this file, it's both for us and for buildpacks that follow
 # composer bin-dir goes last to avoid any conflicts
-echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/export
+echo "export PATH=/app/api/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/export
 # make sure Composer and binaries for it are on the path at runtime
 # composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
-echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
+echo "export PATH=\$HOME/api/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
 
 # a few more practical defaults for Composer (use available memory, always mirror path repos because of FS boundaries during build, always run non-interactively)
 cat | tee -a $bp_dir/export >> $build_dir/.profile.d/100-composer.sh <<-'EOF'
@@ -359,7 +359,7 @@ else
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
-/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
+/app/api/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
 	code=$?
 	if [[ $code -eq 3 ]]; then
 		mcount "failures.platform.composer_lock.runtime_only_in_dev"
@@ -499,7 +499,7 @@ export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
 
 # clean up
-rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
+rm -rf /app/api/.heroku/php-min $build_dir/.heroku/php-min
 unset -f composer
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
